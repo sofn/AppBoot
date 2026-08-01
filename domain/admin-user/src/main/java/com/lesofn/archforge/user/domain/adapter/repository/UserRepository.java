@@ -1,4 +1,4 @@
-package com.lesofn.archforge.user.domain.repository;
+package com.lesofn.archforge.user.domain.adapter.repository;
 
 import com.lesofn.archforge.user.domain.model.aggregate.UserAggregate;
 import com.lesofn.archforge.user.domain.valueobject.UserId;

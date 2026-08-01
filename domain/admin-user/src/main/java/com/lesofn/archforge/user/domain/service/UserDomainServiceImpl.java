@@ -1,7 +1,7 @@
 package com.lesofn.archforge.user.domain.service;
 
 import com.lesofn.archforge.user.domain.model.aggregate.UserAggregate;
-import com.lesofn.archforge.user.domain.repository.UserRepository;
+import com.lesofn.archforge.user.domain.adapter.repository.UserRepository;
 import com.lesofn.archforge.user.domain.valueobject.Email;
 import com.lesofn.archforge.user.domain.valueobject.Password;
 import com.lesofn.archforge.user.domain.valueobject.PhoneNumber;

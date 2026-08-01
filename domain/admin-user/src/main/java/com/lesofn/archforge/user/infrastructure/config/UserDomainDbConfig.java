@@ -1,4 +1,4 @@
-package com.lesofn.archforge.user.internal.config;
+package com.lesofn.archforge.user.infrastructure.config;
 
 import com.lesofn.archforge.infrastructure.frame.database.GroupDataSourceProxy;
 import java.util.HashMap;
@@ -8,23 +8,28 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Primary;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.orm.jpa.JpaTransactionManager;
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
 import org.springframework.transaction.PlatformTransactionManager;
 
+/**
+ * 用户领域持久化配置。
+ *
+ * <p>
+ * 为新的 {@code UserPO} 提供独立的 {@link jakarta.persistence.EntityManagerFactory}，
+ * 避免与旧 {@code SysUser} 等实体映射同一张表产生冲突。
+ */
 @Configuration
 @RequiredArgsConstructor
 @EnableJpaRepositories(
         basePackages = {
-                "com.lesofn.archforge.user.api.dao",
-                "com.lesofn.archforge.user.api.menu.repository"
+                "com.lesofn.archforge.user.infrastructure.dao"
         },
-        entityManagerFactoryRef = "userEntityManagerFactory",
-        transactionManagerRef = "userTransactionManager")
-public class UserDbConfig {
+        entityManagerFactoryRef = "userDomainEntityManagerFactory",
+        transactionManagerRef = "userDomainTransactionManager")
+public class UserDomainDbConfig {
 
     private final DataSource dataSource;
 
@@ -32,15 +37,14 @@ public class UserDbConfig {
     private String ddlAuto;
 
     @Bean
-    @Primary
-    PlatformTransactionManager userTransactionManager() {
-        return new JpaTransactionManager(userEntityManagerFactory().getObject());
+    PlatformTransactionManager userDomainTransactionManager() {
+        return new JpaTransactionManager(userDomainEntityManagerFactory().getObject());
     }
 
     @Bean
-    LocalContainerEntityManagerFactoryBean userEntityManagerFactory() {
+    LocalContainerEntityManagerFactoryBean userDomainEntityManagerFactory() {
         HibernateJpaVendorAdapter jpaVendorAdapter = new HibernateJpaVendorAdapter();
-        jpaVendorAdapter.setGenerateDdl(true);
+        jpaVendorAdapter.setGenerateDdl(false);
         jpaVendorAdapter.setShowSql(false);
         jpaVendorAdapter.setDatabasePlatform("org.hibernate.dialect.PostgreSQLDialect");
 
@@ -48,16 +52,13 @@ public class UserDbConfig {
 
         factoryBean.setDataSource(new GroupDataSourceProxy(dataSource, "user"));
         factoryBean.setJpaVendorAdapter(jpaVendorAdapter);
-        factoryBean.setPersistenceUnitName("user");
-        // 扫描旧领域实体与 JPA 转换器
+        factoryBean.setPersistenceUnitName("user-domain");
         factoryBean.setPackagesToScan(
-                "com.lesofn.archforge.user.api.domain",
-                "com.lesofn.archforge.user.api.domain.convert",
+                "com.lesofn.archforge.user.infrastructure.adapter.repository.po",
                 "com.lesofn.archforge.common.repository.converter");
 
-        // Set JPA properties
         Map<String, Object> properties = new HashMap<>();
-        properties.put("hibernate.hbm2ddl.auto", ddlAuto);
+        properties.put("hibernate.hbm2ddl.auto", "none");
         properties.put("hibernate.dialect", "org.hibernate.dialect.PostgreSQLDialect");
         properties.put(
                 "hibernate.physical_naming_strategy",

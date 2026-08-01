@@ -1,12 +1,12 @@
 package com.lesofn.archforge.user.domain.valueobject;
 
-import org.springframework.security.crypto.password.PasswordEncoder;
+import com.lesofn.archforge.user.domain.adapter.port.PasswordEncoderPort;
 
 /**
  * 密码值对象。
  *
  * <p>
- * 仅持有加密后的密码值，不暴露明文。
+ * 仅持有加密后的密码值，不暴露明文；加密算法通过 {@link PasswordEncoderPort} 由基础设施层注入。
  */
 public record Password(String value) {
 
@@ -23,10 +23,10 @@ public record Password(String value) {
      * 根据明文密码创建加密后的 Password 值对象。
      *
      * @param rawPassword 明文密码，长度 6-32
-     * @param encoder 加密器
+     * @param encoder 领域定义的加密端口
      * @return 加密后的 Password
      */
-    public static Password ofRaw(String rawPassword, PasswordEncoder encoder) {
+    public static Password ofRaw(String rawPassword, PasswordEncoderPort encoder) {
         if (rawPassword == null || rawPassword.isBlank()) {
             throw new IllegalArgumentException("Raw password must not be blank");
         }
@@ -54,10 +54,10 @@ public record Password(String value) {
      * 校验明文密码是否与当前加密值匹配。
      *
      * @param rawPassword 明文密码
-     * @param encoder 加密器
+     * @param encoder 领域定义的加密端口
      * @return 是否匹配
      */
-    public boolean matches(String rawPassword, PasswordEncoder encoder) {
+    public boolean matches(String rawPassword, PasswordEncoderPort encoder) {
         if (rawPassword == null || encoder == null) {
             return false;
         }

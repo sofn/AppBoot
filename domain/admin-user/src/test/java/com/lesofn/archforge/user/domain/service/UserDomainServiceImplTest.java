@@ -6,7 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.lesofn.archforge.user.domain.model.aggregate.UserAggregate;
-import com.lesofn.archforge.user.domain.repository.InMemoryUserRepository;
+import com.lesofn.archforge.user.domain.adapter.repository.InMemoryUserRepository;
 import com.lesofn.archforge.user.domain.valueobject.Email;
 import com.lesofn.archforge.user.domain.valueobject.Password;
 import com.lesofn.archforge.user.domain.valueobject.PhoneNumber;
