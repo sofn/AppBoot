@@ -1,13 +1,13 @@
 # Progress
 
-所有后端、数据、前端改造已完成并验证通过。
+所有改造任务已完成并验证通过。
 
-- [x] `example/example-task` CRUD + 状态机
-- [x] `SysUser` 富领域重构
-- [x] 数据种子与 Flyway 迁移
-- [x] ArchForgeAdmin 任务管理页面
-- [x] `./gradlew build` 通过
-- [x] `server-admin:bootRun` 启动成功
-- [x] Chrome 验证页面可加载、新增/开始/完成/指定负责人流程正常
-- [x] 已提交 `ArchForge`、`ArchForgeAdmin`、`codeplans` 三个仓库
-- [x] `codeplans` 已推送
+- [x] Task 1: 合并 `domain/admin-user-api` 到 `domain/admin-user`
+- [x] Task 2: `common-jpa` 新增 `BasePO` / `BaseDomainEntity`
+- [x] Task 3: MapStruct 依赖配置
+- [x] Task 4: `admin-user` 领域包骨架
+- [x] Task 5: ArchUnit 测试基础设施
+- [x] Task 6: `./gradlew build` 验证
+- [x] Task 7: `server-admin:bootRun` dev 启动验证
+
+当前瓶颈：无。
