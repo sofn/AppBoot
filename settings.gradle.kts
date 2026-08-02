@@ -33,6 +33,11 @@ include("domain:admin-user")
 
 include("example:example-task")
 
+include("starters:arch-forge-redisson-starter")
+include("starters:arch-forge-cache-starter")
+include("starters:arch-forge-lock-starter")
+include("starters:arch-forge-trace-starter")
+
 // Configure build file names for subprojects
 rootProject.children.forEach { project ->
     // All subprojects now use build.gradle.kts
