@@ -61,7 +61,6 @@ INSERT INTO  sys_menu (menu_id, menu_name, menu_type, router_name, parent_id, pa
 INSERT INTO  sys_menu (menu_id, menu_name, menu_type, router_name, parent_id, path, is_button, permission, meta_info, status, remark, creator_id, create_time, updater_id, update_time, deleted) VALUES (61, '批量强退', 0, ' ', 13, '', 1, 'monitor:online:batchLogout', '{"title":"批量强退"}', 1, '', 0, '2022-05-21 08:30:54', null, null, 0);
 INSERT INTO  sys_menu (menu_id, menu_name, menu_type, router_name, parent_id, path, is_button, permission, meta_info, status, remark, creator_id, create_time, updater_id, update_time, deleted) VALUES (62, '单条强退', 0, ' ', 13, '', 1, 'monitor:online:forceLogout', '{"title":"单条强退"}', 1, '', 0, '2022-05-21 08:30:54', null, null, 0);
 INSERT INTO  sys_menu (menu_id, menu_name, menu_type, router_name, parent_id, path, is_button, permission, meta_info, status, remark, creator_id, create_time, updater_id, update_time, deleted) VALUES (63, 'ArchForge Github地址', 4, 'https://github.com/sofn/ArchForge', 0, '/external', 0, '', '{"title":"ArchForge Github地址","icon":"fa-solid:external-link-alt","showParent":true,"rank":9}', 1, 'ArchForge github地址', 0, '2022-05-21 08:30:54', 1, '2023-08-14 23:12:13', 0);
-INSERT INTO  sys_menu (menu_id, menu_name, menu_type, router_name, parent_id, path, is_button, permission, meta_info, status, remark, creator_id, create_time, updater_id, update_time, deleted) VALUES (64, '首页', 2, '', 0, '/global', 0, '121212', '{"title":"首页","showParent":true,"rank":3}', 1, '', 1, '2023-07-24 22:36:03', 1, '2023-07-24 22:38:37', 1);
 INSERT INTO  sys_menu (menu_id, menu_name, menu_type, router_name, parent_id, path, is_button, permission, meta_info, status, remark, creator_id, create_time, updater_id, update_time, deleted) VALUES (65, '个人中心', 1, 'PersonalCenter', 2053, '/system/user/profile', 0, '434sdf', '{"title":"个人中心","showParent":true,"rank":3}', 1, '', 1, '2023-07-24 22:36:55', null, null, 1);
 
 
@@ -142,8 +141,8 @@ INSERT INTO  sys_role_menu (role_id, menu_id) VALUES (2, 67);
 INSERT INTO  sys_role_menu (role_id, menu_id) VALUES (2, 68);
 INSERT INTO  sys_role_menu (role_id, menu_id) VALUES (2, 69);
 
--- 任务管理示例菜单
-INSERT INTO  sys_menu (menu_id, menu_name, menu_type, router_name, parent_id, path, is_button, permission, meta_info, status, remark, creator_id, create_time, updater_id, update_time, deleted) VALUES (70, '任务管理', 1, 'ExampleTask', 0, '/example/task/index', 0, 'example:task:list', '{"title":"任务管理","icon":"ep:list","showParent":true,"rank":4}', 1, '任务管理示例菜单', 1, '2022-05-21 08:30:54', 1, '2022-05-21 08:30:54', 0);
+-- 示例：任务管理菜单（位于系统监控下）
+INSERT INTO  sys_menu (menu_id, menu_name, menu_type, router_name, parent_id, path, is_button, permission, meta_info, status, remark, creator_id, create_time, updater_id, update_time, deleted) VALUES (70, '示例：任务管理', 1, 'ExampleTask', 2, '/example/task/index', 0, 'example:task:list', '{"title":"示例：任务管理","icon":"ep:list","showParent":true,"rank":4}', 1, '示例：任务管理菜单', 1, '2022-05-21 08:30:54', 1, '2022-05-21 08:30:54', 0);
 INSERT INTO  sys_menu (menu_id, menu_name, menu_type, router_name, parent_id, path, is_button, permission, meta_info, status, remark, creator_id, create_time, updater_id, update_time, deleted) VALUES (71, '任务查询', 0, ' ', 70, '', 1, 'example:task:query', '{"title":"任务查询"}', 1, '', 1, '2022-05-21 08:30:54', 1, '2022-05-21 08:30:54', 0);
 INSERT INTO  sys_menu (menu_id, menu_name, menu_type, router_name, parent_id, path, is_button, permission, meta_info, status, remark, creator_id, create_time, updater_id, update_time, deleted) VALUES (72, '任务新增', 0, ' ', 70, '', 1, 'example:task:add', '{"title":"任务新增"}', 1, '', 1, '2022-05-21 08:30:54', 1, '2022-05-21 08:30:54', 0);
 INSERT INTO  sys_menu (menu_id, menu_name, menu_type, router_name, parent_id, path, is_button, permission, meta_info, status, remark, creator_id, create_time, updater_id, update_time, deleted) VALUES (73, '任务修改', 0, ' ', 70, '', 1, 'example:task:edit', '{"title":"任务修改"}', 1, '', 1, '2022-05-21 08:30:54', 1, '2022-05-21 08:30:54', 0);
@@ -161,3 +160,7 @@ INSERT INTO  sys_role_menu (role_id, menu_id) VALUES (2, 74);
 INSERT INTO  sys_role_menu (role_id, menu_id) VALUES (2, 75);
 INSERT INTO  sys_role_menu (role_id, menu_id) VALUES (2, 76);
 INSERT INTO  sys_role_menu (role_id, menu_id) VALUES (2, 77);
+
+-- 菜单调整兜底：删除 /global 首页、确保任务管理在系统监控下
+DELETE FROM sys_menu WHERE menu_name = '首页' AND path = '/global';
+UPDATE sys_menu SET menu_name = '示例：任务管理', parent_id = 2, remark = '示例：任务管理菜单', meta_info = '{"title":"示例：任务管理","icon":"ep:list","showParent":true,"rank":4}', update_time = CURRENT_TIMESTAMP WHERE menu_id = 70;
