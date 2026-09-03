@@ -2,7 +2,7 @@ package com.lesofn.archforge.user.internal.menu;
 
 import com.lesofn.archforge.user.api.menu.SysMenuService;
 import com.lesofn.archforge.common.enums.common.StatusEnum;
-import com.lesofn.archforge.infrastructure.auth.model.SystemLoginUser;
+import com.lesofn.archforge.user.api.menu.MenuUser;
 import com.lesofn.archforge.user.api.dao.SysRoleMenuRepository;
 import com.lesofn.archforge.user.api.domain.SysMenu;
 import com.lesofn.archforge.user.api.menu.dto.MetaDTO;
@@ -104,13 +104,13 @@ public class SysMenuServiceImpl implements SysMenuService {
                 .toList();
     }
 
-    public List<RouterDTO> getRouterTree(SystemLoginUser loginUser) {
+    public List<RouterDTO> getRouterTree(MenuUser user) {
 
         List<SysMenu> allMenus;
-        if (loginUser.isAdmin()) {
+        if (user.admin()) {
             allMenus = sysMenuRepository.findAll();
         } else {
-            allMenus = sysMenuRepository.selectMenuListByUserId(loginUser.getUserId());
+            allMenus = sysMenuRepository.selectMenuListByUserId(user.userId());
         }
 
         boolean isProd = environment.acceptsProfiles(Profiles.of("prod"));

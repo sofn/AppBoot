@@ -1,12 +1,12 @@
 package com.lesofn.archforge.blog.internal.service;
 
-import com.lesofn.archforge.blog.api.dao.BlogArticleRepository;
 import com.lesofn.archforge.blog.api.dao.BlogCategoryRepository;
 import com.lesofn.archforge.blog.api.domain.BlogCategory;
 import com.lesofn.archforge.blog.api.enums.BlogArticleStatus;
 import com.lesofn.archforge.blog.api.errors.BlogErrorCode;
 import com.lesofn.archforge.blog.api.errors.BlogException;
 import com.lesofn.archforge.blog.api.service.BlogCategoryService;
+import com.lesofn.archforge.blog.domain.repository.ArticleRepository;
 import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
@@ -22,7 +22,7 @@ import org.springframework.util.StringUtils;
 public class BlogCategoryServiceImpl implements BlogCategoryService {
 
     private final BlogCategoryRepository categoryRepository;
-    private final BlogArticleRepository articleRepository;
+    private final ArticleRepository articleRepository;
 
     @Override
     public List<BlogCategory> listVisible() {
@@ -81,9 +81,10 @@ public class BlogCategoryServiceImpl implements BlogCategoryService {
     public void delete(Long id) {
         BlogCategory category = categoryRepository.findById(id)
                 .orElseThrow(() -> new BlogException(BlogErrorCode.CATEGORY_NOT_FOUND));
-        long count = articleRepository.countByCategoryIdAndStatusAndDeletedFalse(id, BlogArticleStatus.PUBLISHED) +
-                articleRepository.countByCategoryIdAndStatusAndDeletedFalse(id, BlogArticleStatus.DRAFT) + articleRepository
-                        .countByCategoryIdAndStatusAndDeletedFalse(id, BlogArticleStatus.OFFLINE);
+        // 状态逐一枚举求和：状态机新增状态时此处会在编译期被提醒（见 ArticleRepository#countByCategoryAndStatus）
+        long count = articleRepository.countByCategoryAndStatus(id, BlogArticleStatus.PUBLISHED) +
+                articleRepository.countByCategoryAndStatus(id, BlogArticleStatus.DRAFT) +
+                articleRepository.countByCategoryAndStatus(id, BlogArticleStatus.OFFLINE);
         if (count > 0) {
             throw new BlogException(BlogErrorCode.CATEGORY_HAS_ARTICLES);
         }

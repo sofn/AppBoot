@@ -73,7 +73,13 @@ public final class SecretGenerator {
                 lines.add(key + "=" + value);
                 written.put(key, value);
             }
-            Files.write(envFile, lines, StandardCharsets.UTF_8);
+            // 显式用 LF 写入：.env 会被 Docker / Linux 容器读取，
+            // 若按 Windows 平台分隔符写成 CRLF，容器侧读到的值末尾会多出 \r。
+            StringBuilder content = new StringBuilder();
+            for (String line : lines) {
+                content.append(line).append('\n');
+            }
+            Files.writeString(envFile, content.toString(), StandardCharsets.UTF_8);
             return written;
         } catch (IOException e) {
             throw new IllegalStateException("Failed to write env file: " + envFile, e);

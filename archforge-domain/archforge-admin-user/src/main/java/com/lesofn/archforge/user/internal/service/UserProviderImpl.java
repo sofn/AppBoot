@@ -1,8 +1,7 @@
 package com.lesofn.archforge.user.internal.service;
 
-import com.lesofn.archforge.infrastructure.auth.model.AuthRequest;
-import com.lesofn.archforge.infrastructure.auth.provider.UserProvider;
 import com.lesofn.archforge.user.api.domain.SysUser;
+import com.lesofn.archforge.user.api.port.UserProvider;
 import com.lesofn.archforge.user.api.service.UserService;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
@@ -18,11 +17,6 @@ public class UserProviderImpl implements UserProvider {
     public boolean isValidUser(long uid) {
         Optional<SysUser> user = userService.findById(uid);
         return user.isPresent();
-    }
-
-    @Override
-    public boolean checkCanAccess(AuthRequest request, long uid) {
-        return true;
     }
 
     @Override

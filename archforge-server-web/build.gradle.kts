@@ -109,6 +109,9 @@ dependencies {
 
     testImplementation("org.springframework.boot:spring-boot-starter-test")
 
-    // ArchUnit architecture tests (G7)
+    // Spring Modulith verification (module boundary checks)
+    testImplementation("org.springframework.modulith:spring-modulith-test")
+
+    // ArchUnit architecture tests
     testImplementation("com.tngtech.archunit:archunit")
 }

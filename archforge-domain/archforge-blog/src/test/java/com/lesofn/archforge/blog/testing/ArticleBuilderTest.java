@@ -5,8 +5,8 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import com.lesofn.archforge.blog.api.domain.BlogArticle;
 import com.lesofn.archforge.blog.api.enums.BlogArticleStatus;
+import com.lesofn.archforge.blog.domain.model.aggregate.BlogArticle;
 import org.junit.jupiter.api.Test;
 
 /** Verifies the default-valid contract of the blog article test data builder. */
@@ -24,11 +24,18 @@ class ArticleBuilderTest {
     }
 
     @Test
-    void publishedHelperSetsStatusWithoutDomainTransition() {
+    void publishedHelperGoesThroughDomainTransition() {
         BlogArticle article = ArticleTestBuilder.anArticle().published().build();
 
         assertEquals(BlogArticleStatus.PUBLISHED, article.getStatus());
         assertNotNull(article.getPublishTime());
+    }
+
+    @Test
+    void offlineHelperProducesOfflineArticle() {
+        BlogArticle article = ArticleTestBuilder.anArticle().offline().build();
+
+        assertEquals(BlogArticleStatus.OFFLINE, article.getStatus());
     }
 
     @Test

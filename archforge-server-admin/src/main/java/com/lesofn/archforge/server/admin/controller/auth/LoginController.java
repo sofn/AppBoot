@@ -11,6 +11,7 @@ import com.lesofn.archforge.server.admin.dto.*;
 import com.lesofn.archforge.server.admin.service.login.LoginService;
 import com.lesofn.archforge.server.admin.service.login.TokenService;
 import com.lesofn.archforge.server.admin.service.user.AdminUserService;
+import com.lesofn.archforge.user.api.menu.MenuUser;
 import com.lesofn.archforge.user.api.menu.SysMenuService;
 import com.lesofn.archforge.user.api.menu.dto.RouterDTO;
 import io.swagger.v3.oas.annotations.Operation;
@@ -157,7 +158,7 @@ public class LoginController {
     @GetMapping("/getRouters")
     public List<RouterDTO> getRouters() {
         SystemLoginUser loginUser = LoginContext.getAdminUser();
-        return menuService.getRouterTree(loginUser);
+        return menuService.getRouterTree(new MenuUser(loginUser.getUserId(), loginUser.isAdmin()));
     }
 
     /**
@@ -170,7 +171,7 @@ public class LoginController {
     @GetMapping("/get-async-routes")
     public List<RouterDTO> getAsyncRoutes() {
         SystemLoginUser loginUser = LoginContext.getAdminUser();
-        return menuService.getRouterTree(loginUser);
+        return menuService.getRouterTree(new MenuUser(loginUser.getUserId(), loginUser.isAdmin()));
     }
 
     /** 构建登录响应DTO */

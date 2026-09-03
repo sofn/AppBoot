@@ -187,3 +187,51 @@ tasks.register<JacocoReport>("jacocoAggregateReport") {
         csv.required.set(false)
     }
 }
+
+// ============================================================
+// 架构第一道防线（方案 §4.3）：领域模块不得依赖 infrastructure / server-*
+// ArchUnit 是事后检查，Gradle 层面直接禁止更省事。
+// 验收命令: ./gradlew checkModuleDependencies
+// ============================================================
+val domainModulePaths = setOf(
+    ":archforge-domain:archforge-blog",
+    ":archforge-domain:archforge-admin-user",
+    ":archforge-domain:archforge-meta-table",
+    ":archforge-example:archforge-example-task",
+)
+val forbiddenForDomain = setOf(":archforge-infrastructure", ":archforge-server-admin", ":archforge-server-web")
+
+val checkModuleDependencies = tasks.register("checkModuleDependencies") {
+    group = "verification"
+    description = "架构第一道防线：领域模块不得依赖 infrastructure / server-*（外部能力经 port 声明，由 server 层装配）"
+    doLast {
+        val violations = mutableListOf<String>()
+        for (modulePath in domainModulePaths) {
+            val project = findProject(modulePath) ?: continue
+            for (configName in listOf("api", "implementation", "compileOnly", "runtimeOnly")) {
+                val configuration = project.configurations.findByName(configName) ?: continue
+                configuration.dependencies.withType(ProjectDependency::class.java).forEach { dependency ->
+                    if (dependency.path in forbiddenForDomain) {
+                        violations.add("  $modulePath ($configName) -> ${dependency.path}")
+                    }
+                }
+            }
+        }
+        if (violations.isNotEmpty()) {
+            throw GradleException(
+                "架构违规: 领域模块不得依赖 infrastructure / server-*：\n" +
+                    violations.joinToString("\n") +
+                    "\n请在 domain/.../port/ 声明端口接口，由 server 层装配实现。"
+            )
+        }
+    }
+}
+
+// 挂到领域模块的 check 生命周期，让 ./gradlew build 也会执行该校验
+subprojects {
+    if (path in domainModulePaths) {
+        tasks.matching { task -> task.name == "check" }.configureEach {
+            dependsOn(checkModuleDependencies)
+        }
+    }
+}

@@ -1,7 +1,6 @@
 package com.lesofn.archforge.user.api.menu;
 
 import com.lesofn.archforge.common.enums.common.StatusEnum;
-import com.lesofn.archforge.infrastructure.auth.model.SystemLoginUser;
 import com.lesofn.archforge.user.api.dao.SysRoleMenuRepository;
 import com.lesofn.archforge.user.api.domain.SysMenu;
 import com.lesofn.archforge.user.api.menu.dto.MetaDTO;
@@ -38,5 +37,5 @@ public interface SysMenuService {
 
     List<SysMenu> buildMenuTree(List<SysMenu> menus);
 
-    List<RouterDTO> getRouterTree(SystemLoginUser loginUser);
+    List<RouterDTO> getRouterTree(MenuUser user);
 }

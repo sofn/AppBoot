@@ -26,6 +26,10 @@ spring:
           max-idle: 8
           max-active: 8
           max-wait: -1ms
+  modulith:
+    # 与 server-admin 保持一致：只把显式标注 @ApplicationModule 的包当作模块，
+    # 避免 starter 等第三方包被自动检测为模块
+    detection-strategy: explicitly-annotated
 
 springdoc:
   api-docs:

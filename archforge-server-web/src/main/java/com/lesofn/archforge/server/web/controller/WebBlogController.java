@@ -1,10 +1,11 @@
 package com.lesofn.archforge.server.web.controller;
 
-import com.lesofn.archforge.blog.api.domain.BlogArticle;
-import com.lesofn.archforge.blog.api.enums.BlogArticleStatus;
 import com.lesofn.archforge.blog.api.domain.BlogCategory;
 import com.lesofn.archforge.blog.api.service.BlogArticleService;
 import com.lesofn.archforge.blog.api.service.BlogCategoryService;
+import com.lesofn.archforge.blog.domain.model.aggregate.BlogArticle;
+import com.lesofn.archforge.blog.domain.valueobject.ArticleSlug;
+import com.lesofn.archforge.blog.domain.valueobject.ArticleTitle;
 import com.lesofn.archforge.infrastructure.auth.LoginContext;
 import com.lesofn.archforge.server.web.dto.WebArticleCreateRequest;
 import com.lesofn.archforge.server.web.dto.WebArticleDetailResponse;
@@ -90,15 +91,16 @@ public class WebBlogController {
             baseSlug = "article";
         }
         String slug = baseSlug + "-" + System.currentTimeMillis();
-        BlogArticle article = new BlogArticle()
-                .setCategoryId(request.getCategoryId())
-                .setTitle(request.getTitle())
-                .setSlug(slug)
-                .setSummary(request.getSummary())
-                .setContent(request.getContent())
-                .setCoverImageFileId(request.getCoverImageFileId())
-                .setAuthorId(authorId)
-                .setStatus(BlogArticleStatus.PUBLISHED);
+        // 经聚合根工厂创建（校验标题/slug 不变量），发布走领域状态机而非直接置状态
+        BlogArticle article = BlogArticle.create(
+                new ArticleTitle(request.getTitle()),
+                new ArticleSlug(slug),
+                request.getCategoryId(),
+                request.getSummary(),
+                request.getContent(),
+                request.getCoverImageFileId());
+        article.assignAuthor(authorId);
+        article.publish();
         return articleService.create(article).getId();
     }
 
@@ -122,13 +124,13 @@ public class WebBlogController {
         String coverUrl = buildFileUrl(article.getCoverImageFileId());
         String categoryName = categoryService.findById(article.getCategoryId())
                 .map(BlogCategory::getName).orElse("");
-        return new WebArticleSummaryResponse(article.getId(), article.getTitle(), article.getSlug(), article
+        return new WebArticleSummaryResponse(article.getId(), article.getTitle().value(), article.getSlug().value(), article
                 .getSummary(), article.getCoverImageFileId(), coverUrl, categoryName, article.getPublishTime());
     }
 
     private WebArticleDetailResponse toDetailResponse(BlogArticle article, BlogCategory category) {
         String coverUrl = buildFileUrl(article.getCoverImageFileId());
-        return new WebArticleDetailResponse(article.getId(), article.getTitle(), article.getSlug(), article
+        return new WebArticleDetailResponse(article.getId(), article.getTitle().value(), article.getSlug().value(), article
                 .getSummary(), article.getContent(), article.getCoverImageFileId(), coverUrl, category != null ? category
                         .getId() : null, category != null ? category.getName() : "", category != null ? category.getSlug()
                                 : "", article.getPublishTime(), article.getCreateTime());

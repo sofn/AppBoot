@@ -5,14 +5,11 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
-import com.lesofn.archforge.infrastructure.dictionary.EnumDictionary;
-import com.lesofn.archforge.infrastructure.dictionary.EnumDictionaryItem;
-import com.lesofn.archforge.infrastructure.dictionary.EnumDictionaryRegistry;
 import com.lesofn.archforge.user.api.dao.dict.SysDictItemRepository;
 import com.lesofn.archforge.user.api.dao.dict.SysDictTypeRepository;
 import com.lesofn.archforge.user.api.domain.dict.SysDictType;
 import com.lesofn.archforge.user.api.errors.AdminUserException;
-import java.util.List;
+import com.lesofn.archforge.user.api.port.EnumDictionaryPort;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -28,7 +25,7 @@ public class SysDictServiceImplTest {
     @Mock
     private SysDictItemRepository itemRepository;
     @Mock
-    private EnumDictionaryRegistry enumDictionaryRegistry;
+    private EnumDictionaryPort enumDictionaryPort;
 
     @InjectMocks
     private SysDictServiceImpl service;
@@ -36,10 +33,11 @@ public class SysDictServiceImplTest {
     @Test
     void shouldFallbackToEnumWhenTypeCodeNotInDb() {
         when(typeRepository.findByDictCode("common.yesOrNo")).thenReturn(Optional.empty());
-        EnumDictionary dict = new EnumDictionary(-1L, "common.yesOrNo", "是否", null, 1, 0, List.of(
-                new EnumDictionaryItem(-1L, -1L, "1", "是", 0, 1, null),
-                new EnumDictionaryItem(-1L, -2L, "0", "否", 1, 1, null)));
-        when(enumDictionaryRegistry.findByCode("common.yesOrNo")).thenReturn(Optional.of(dict));
+        SysDictType enumType = new SysDictType();
+        enumType.setDictTypeId(-1L);
+        enumType.setDictCode("common.yesOrNo");
+        enumType.setDictName("是否");
+        when(enumDictionaryPort.findTypeByCode("common.yesOrNo")).thenReturn(Optional.of(enumType));
 
         Optional<SysDictType> result = service.findTypeByCode("common.yesOrNo");
 
@@ -50,7 +48,7 @@ public class SysDictServiceImplTest {
 
     @Test
     void shouldRejectSavingEnumType() {
-        when(enumDictionaryRegistry.isEnumDictCode("common.yesOrNo")).thenReturn(true);
+        when(enumDictionaryPort.isEnumDictCode("common.yesOrNo")).thenReturn(true);
 
         SysDictType type = new SysDictType();
         type.setDictCode("common.yesOrNo");

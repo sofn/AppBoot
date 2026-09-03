@@ -3,8 +3,8 @@ package com.lesofn.archforge.server.admin.service.dashboard;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.when;
 
-import com.lesofn.archforge.blog.api.dao.BlogArticleRepository;
-import com.lesofn.archforge.blog.api.domain.BlogArticle;
+import com.lesofn.archforge.blog.api.service.BlogArticleService;
+import com.lesofn.archforge.blog.domain.model.aggregate.BlogArticle;
 import com.lesofn.archforge.blog.testing.ArticleTestBuilder;
 import com.lesofn.archforge.meta.table.api.dao.MetaTableRepository;
 import com.lesofn.archforge.user.api.dao.SysUserRepository;
@@ -17,7 +17,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
 
 /** Unit tests for {@link DashboardService}. */
 @Tag("P1")
@@ -27,7 +26,7 @@ class DashboardServiceTest {
     @Mock
     private SysUserRepository userRepository;
     @Mock
-    private BlogArticleRepository articleRepository;
+    private BlogArticleService articleService;
     @Mock
     private MetaTableRepository metaTableRepository;
 
@@ -37,7 +36,7 @@ class DashboardServiceTest {
     @Test
     void metricsCountsLiveRowsOnly() {
         when(userRepository.countByDeletedFalse()).thenReturn(11L);
-        when(articleRepository.countByDeletedFalse()).thenReturn(22L);
+        when(articleService.countAll()).thenReturn(22L);
         when(metaTableRepository.countByDeletedFalse()).thenReturn(33L);
 
         DashboardMetricsResponse metrics = service.metrics();
@@ -51,7 +50,7 @@ class DashboardServiceTest {
     @Test
     void trendsDefaultsToSevenDaysAndRepeatsCurrentTotals() {
         when(userRepository.countByDeletedFalse()).thenReturn(5L);
-        when(articleRepository.countByDeletedFalse()).thenReturn(6L);
+        when(articleService.countAll()).thenReturn(6L);
 
         List<DashboardTrendPoint> points = service.trends(0);
 
@@ -70,26 +69,25 @@ class DashboardServiceTest {
     }
 
     @Test
-    void recentActivitiesFallsBackToIdWhenTitleMissing() {
+    void recentActivitiesRendersArticleTitles() {
+        // 聚合根的标题是必填值对象（无标题场景已不可能），直接验证拆箱渲染
         BlogArticle titled = ArticleTestBuilder.anArticle().withId(1L).withTitle("Hello").build();
-        // Builders default the title; clear it to exercise the service fallback.
-        BlogArticle untitled = ArticleTestBuilder.anArticle().withId(2L).build();
-        untitled.setTitle(null);
-        when(articleRepository.findAll(org.mockito.ArgumentMatchers.any(PageRequest.class)))
-                .thenReturn(new PageImpl<>(List.of(titled, untitled)));
+        BlogArticle other = ArticleTestBuilder.anArticle().withId(2L).withTitle("World").build();
+        when(articleService.findRecent(org.mockito.ArgumentMatchers.any(PageRequest.class)))
+                .thenReturn(new PageImpl<>(List.of(titled, other)));
 
         List<DashboardActivity> activities = service.recentActivities();
 
         assertEquals(2, activities.size());
         assertEquals("article", activities.get(0).type());
         assertEquals("Hello", activities.get(0).title());
-        assertEquals("article-2", activities.get(1).title());
+        assertEquals("World", activities.get(1).title());
     }
 
     @Test
     void todoListsAllCountersWithLinks() {
         when(userRepository.countByDeletedFalse()).thenReturn(1L);
-        when(articleRepository.countByDeletedFalse()).thenReturn(2L);
+        when(articleService.countAll()).thenReturn(2L);
         when(metaTableRepository.countByDeletedFalse()).thenReturn(3L);
 
         List<DashboardTodo> todos = service.todo();

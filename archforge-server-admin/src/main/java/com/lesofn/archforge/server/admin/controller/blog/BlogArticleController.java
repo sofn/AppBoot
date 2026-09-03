@@ -1,10 +1,12 @@
 package com.lesofn.archforge.server.admin.controller.blog;
 
-import com.lesofn.archforge.blog.api.domain.BlogArticle;
 import com.lesofn.archforge.blog.api.domain.BlogCategory;
 import com.lesofn.archforge.blog.api.enums.BlogArticleStatus;
 import com.lesofn.archforge.blog.api.service.BlogArticleService;
 import com.lesofn.archforge.blog.api.service.BlogCategoryService;
+import com.lesofn.archforge.blog.domain.model.aggregate.BlogArticle;
+import com.lesofn.archforge.blog.domain.valueobject.ArticleSlug;
+import com.lesofn.archforge.blog.domain.valueobject.ArticleTitle;
 import com.lesofn.archforge.infrastructure.auth.LoginContext;
 import com.lesofn.archforge.infrastructure.auth.model.SystemLoginUser;
 import com.lesofn.archforge.server.admin.dto.AdminPageResponse;
@@ -66,15 +68,15 @@ public class BlogArticleController {
     @PostMapping("/create")
     public Long create(@RequestBody @Valid AdminBlogArticleCreateRequest request) {
         SystemLoginUser loginUser = LoginContext.getAdminUser();
-        BlogArticle article = buildFromRequest(request)
-                .setAuthorId(loginUser != null ? loginUser.getUserId() : null);
+        BlogArticle article = buildFromRequest(request);
+        article.assignAuthor(loginUser != null ? loginUser.getUserId() : null);
         return articleService.create(article).getId();
     }
 
     @SaCheckPermission(value = "blog:article:edit", type = StpAdminUtil.TYPE)
     @PutMapping("/update")
     public Boolean update(@RequestBody @Valid AdminBlogArticleUpdateRequest request) {
-        BlogArticle article = buildFromRequest(request).setId(request.getId());
+        BlogArticle article = buildFromRequest(request);
         articleService.update(article);
         return true;
     }
@@ -113,25 +115,33 @@ public class BlogArticleController {
     }
 
     private BlogArticle buildFromRequest(AdminBlogArticleCreateRequest request) {
-        return new BlogArticle()
-                .setCategoryId(request.getCategoryId())
-                .setTitle(request.getTitle())
-                .setSlug(request.getSlug())
-                .setSummary(request.getSummary())
-                .setContent(request.getContent())
-                .setCoverImageFileId(request.getCoverImageFileId())
-                .setStatus(toStatus(request.getStatus()));
+        BlogArticle article = BlogArticle.create(
+                new ArticleTitle(request.getTitle()),
+                new ArticleSlug(request.getSlug()),
+                request.getCategoryId(),
+                request.getSummary(),
+                request.getContent(),
+                request.getCoverImageFileId());
+        // 创建即发布的请求走领域状态机；"创建即下线"在 DRAFT→PUBLISHED→OFFLINE
+        // 状态机下不合法，按草稿处理（如需下线请在发布后再调用 /offline 接口）
+        if (toStatus(request.getStatus()) == BlogArticleStatus.PUBLISHED) {
+            article.publish();
+        }
+        return article;
     }
 
     private BlogArticle buildFromRequest(AdminBlogArticleUpdateRequest request) {
-        return new BlogArticle()
-                .setCategoryId(request.getCategoryId())
-                .setTitle(request.getTitle())
-                .setSlug(request.getSlug())
-                .setSummary(request.getSummary())
-                .setContent(request.getContent())
-                .setCoverImageFileId(request.getCoverImageFileId())
-                .setStatus(toStatus(request.getStatus()));
+        BlogArticle article = BlogArticle.create(
+                new ArticleTitle(request.getTitle()),
+                new ArticleSlug(request.getSlug()),
+                request.getCategoryId(),
+                request.getSummary(),
+                request.getContent(),
+                request.getCoverImageFileId());
+        article.setId(request.getId());
+        // 状态字段在更新路径被忽略：状态变更必须走 publish()/offline() 专用接口，
+        // 应用服务 update() 也只同步内容字段
+        return article;
     }
 
     private AdminBlogArticleResponse toResponse(BlogArticle article) {

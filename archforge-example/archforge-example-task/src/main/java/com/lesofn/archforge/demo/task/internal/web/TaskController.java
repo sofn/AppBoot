@@ -1,39 +1,43 @@
 package com.lesofn.archforge.demo.task.internal.web;
 
 import com.lesofn.archforge.demo.task.api.dto.*;
+import com.lesofn.archforge.demo.task.api.port.CurrentUserPort;
 import com.lesofn.archforge.demo.task.internal.service.TaskService;
-import com.lesofn.archforge.infrastructure.frame.context.RequestContext;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import cn.dev33.satoken.annotation.SaCheckRole;
-import com.lesofn.archforge.infrastructure.auth.stp.StpAdminUtil;
 import org.springframework.web.bind.annotation.*;
 
 /** Task management REST API */
 @Slf4j
 @Tag(name = "任务管理")
-@SaCheckRole(value = "ADMIN", type = StpAdminUtil.TYPE)
+@SaCheckRole(value = "ADMIN", type = TaskController.STP_TYPE_ADMIN)
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/task")
 public class TaskController {
 
+    /** 登录类型：管理端（原 StpAdminUtil.TYPE 常量，领域模块不再依赖 infrastructure） */
+    public static final String STP_TYPE_ADMIN = "admin";
+
     private final TaskService taskService;
+    private final CurrentUserPort currentUserPort;
 
     @Operation(summary = "获取任务列表")
     @PostMapping
-    public TaskPageResponse<TaskDTO> list(
-            RequestContext rc, @RequestBody @Valid TaskListRequest request) {
+    public TaskPageResponse<TaskDTO> list(@RequestBody @Valid TaskListRequest request) {
         return taskService.searchTasks(request);
     }
 
     @Operation(summary = "创建任务")
     @PostMapping("/create")
-    public Long create(RequestContext rc, @RequestBody @Valid TaskCreateRequest request) {
-        return taskService.createTask(request, request.getUid() != null ? request.getUid() : rc.getCurrentUid());
+    public Long create(@RequestBody @Valid TaskCreateRequest request) {
+        return taskService.createTask(
+                request,
+                request.getUid() != null ? request.getUid() : currentUserPort.getCurrentUid());
     }
 
     @Operation(summary = "更新任务")

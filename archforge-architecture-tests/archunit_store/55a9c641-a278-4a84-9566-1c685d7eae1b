@@ -1,0 +1,5 @@
+Method <com.lesofn.archforge.server.admin.dto.request.MetaTableCreateRequest$MetaColumnRequest.toColumn()> is declared in classes that reside in a package '..dto..' in (MetaTableCreateRequest.java:112)
+Method <com.lesofn.archforge.server.admin.dto.request.MetaTableCreateRequest.toColumns()> is declared in classes that reside in a package '..dto..' in (MetaTableCreateRequest.java:34)
+Method <com.lesofn.archforge.server.admin.dto.request.MetaTableCreateRequest.toTable()> is declared in classes that reside in a package '..dto..' in (MetaTableCreateRequest.java:41)
+Method <com.lesofn.archforge.server.admin.dto.request.MetaTableUpdateRequest.toColumns()> is declared in classes that reside in a package '..dto..' in (MetaTableUpdateRequest.java:37)
+Method <com.lesofn.archforge.server.admin.dto.request.MetaTableUpdateRequest.toTable()> is declared in classes that reside in a package '..dto..' in (MetaTableUpdateRequest.java:29)

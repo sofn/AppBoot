@@ -7,6 +7,9 @@ dependencies {
     api(project(":archforge-starters:archforge-redisson-starter"))
     api(project(":archforge-starters:archforge-trace-starter"))
 
+    // 基础设施实现领域模块声明的端口（依赖倒置：外层实现内层接口）
+    api(project(":archforge-domain:archforge-admin-user"))
+
     // 核心框架依赖 (Spring Boot BOM 管理的版本)
     // Excluding spring-boot-starter-logging to avoid SLF4J multiple providers issue
     api("org.springframework.boot:spring-boot-starter-web") {

@@ -3,7 +3,7 @@ package com.lesofn.archforge.server.admin.service.dashboard;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.when;
 
-import com.lesofn.archforge.blog.api.dao.BlogArticleRepository;
+import com.lesofn.archforge.blog.api.service.BlogArticleService;
 import com.lesofn.archforge.meta.table.api.dao.MetaTableRepository;
 import com.lesofn.archforge.user.api.dao.SysUserRepository;
 import org.junit.jupiter.api.Test;
@@ -19,7 +19,7 @@ class DashboardMetricsTest {
     private SysUserRepository userRepository;
 
     @Mock
-    private BlogArticleRepository articleRepository;
+    private BlogArticleService articleService;
 
     @Mock
     private MetaTableRepository metaTableRepository;
@@ -30,7 +30,7 @@ class DashboardMetricsTest {
     @Test
     void metricsAggregatesExistingCounts() {
         when(userRepository.countByDeletedFalse()).thenReturn(12L);
-        when(articleRepository.countByDeletedFalse()).thenReturn(4L);
+        when(articleService.countAll()).thenReturn(4L);
         when(metaTableRepository.countByDeletedFalse()).thenReturn(3L);
 
         DashboardMetricsResponse metrics = dashboardService.metrics();

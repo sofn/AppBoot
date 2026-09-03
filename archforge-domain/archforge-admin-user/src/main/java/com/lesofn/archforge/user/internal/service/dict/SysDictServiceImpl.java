@@ -1,14 +1,12 @@
 package com.lesofn.archforge.user.internal.service.dict;
 
-import com.lesofn.archforge.infrastructure.dictionary.EnumDictionary;
-import com.lesofn.archforge.infrastructure.dictionary.EnumDictionaryItem;
-import com.lesofn.archforge.infrastructure.dictionary.EnumDictionaryRegistry;
 import com.lesofn.archforge.user.api.dao.dict.SysDictItemRepository;
 import com.lesofn.archforge.user.api.dao.dict.SysDictTypeRepository;
 import com.lesofn.archforge.user.api.domain.dict.SysDictItem;
 import com.lesofn.archforge.user.api.domain.dict.SysDictType;
 import com.lesofn.archforge.user.api.errors.AdminUserErrorCode;
 import com.lesofn.archforge.user.api.errors.AdminUserException;
+import com.lesofn.archforge.user.api.port.EnumDictionaryPort;
 import com.lesofn.archforge.user.api.service.dict.SysDictService;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -32,7 +30,7 @@ public class SysDictServiceImpl implements SysDictService {
 
     private final SysDictTypeRepository typeRepository;
     private final SysDictItemRepository itemRepository;
-    private final EnumDictionaryRegistry enumDictionaryRegistry;
+    private final EnumDictionaryPort enumDictionaryPort;
 
     @Override
     public Optional<SysDictType> findTypeById(Long dictTypeId) {
@@ -40,13 +38,13 @@ public class SysDictServiceImpl implements SysDictService {
         if (dbType.isPresent()) {
             return dbType;
         }
-        return enumDictionaryRegistry.findByTypeId(dictTypeId).map(this::toSysDictType);
+        return enumDictionaryPort.findTypeById(dictTypeId);
     }
 
     @Override
     public Optional<SysDictType> findTypeByCode(String dictCode) {
         return typeRepository.findByDictCode(dictCode)
-                .or(() -> enumDictionaryRegistry.findByCode(dictCode).map(this::toSysDictType));
+                .or(() -> enumDictionaryPort.findTypeByCode(dictCode));
     }
 
     @Override
@@ -55,10 +53,9 @@ public class SysDictServiceImpl implements SysDictService {
         Set<String> dbCodes = dbTypes.stream()
                 .map(SysDictType::getDictCode)
                 .collect(Collectors.toSet());
-        List<SysDictType> enumTypes = enumDictionaryRegistry.findAll().stream()
+        List<SysDictType> enumTypes = enumDictionaryPort.findAllTypes().stream()
                 .filter(d -> !dbCodes.contains(d.getDictCode()))
                 .filter(d -> matchesKeyword(d, keyword))
-                .map(this::toSysDictType)
                 .toList();
         List<SysDictType> combined = new ArrayList<>(dbTypes.size() + enumTypes.size());
         combined.addAll(dbTypes);
@@ -88,7 +85,7 @@ public class SysDictServiceImpl implements SysDictService {
         return result;
     }
 
-    private boolean matchesKeyword(EnumDictionary dict, String keyword) {
+    private boolean matchesKeyword(SysDictType dict, String keyword) {
         if (!StringUtils.hasText(keyword)) {
             return true;
         }
@@ -110,12 +107,7 @@ public class SysDictServiceImpl implements SysDictService {
         if (dbType.isPresent()) {
             return itemRepository.findByDictTypeIdAndStatusAndDeletedFalseOrderBySortAsc(dbType.get().getDictTypeId(), 1);
         }
-        return enumDictionaryRegistry.findByCode(dictCode)
-                .map(EnumDictionary::getItems)
-                .orElse(List.of())
-                .stream()
-                .map(this::toSysDictItem)
-                .toList();
+        return enumDictionaryPort.findItemsByTypeCode(dictCode);
     }
 
     @Override
@@ -124,18 +116,13 @@ public class SysDictServiceImpl implements SysDictService {
         if (!dbItems.isEmpty()) {
             return dbItems;
         }
-        return enumDictionaryRegistry.findByTypeId(dictTypeId)
-                .map(EnumDictionary::getItems)
-                .orElse(List.of())
-                .stream()
-                .map(this::toSysDictItem)
-                .toList();
+        return enumDictionaryPort.findItemsByTypeId(dictTypeId);
     }
 
     @Override
     public Optional<SysDictItem> findItemById(Long dictItemId) {
         return itemRepository.findById(dictItemId)
-                .or(() -> enumDictionaryRegistry.findItemById(dictItemId).map(this::toSysDictItem));
+                .or(() -> enumDictionaryPort.findItemById(dictItemId));
     }
 
     @Override
@@ -198,42 +185,20 @@ public class SysDictServiceImpl implements SysDictService {
         itemRepository.deleteById(dictItemId);
     }
 
-    private SysDictType toSysDictType(EnumDictionary dict) {
-        SysDictType type = new SysDictType();
-        type.setDictTypeId(dict.getDictTypeId());
-        type.setDictCode(dict.getDictCode());
-        type.setDictName(dict.getDictName());
-        type.setDescription(dict.getDescription());
-        type.setStatus(dict.getStatus());
-        type.setSort(dict.getSort());
-        return type;
-    }
-
-    private SysDictItem toSysDictItem(EnumDictionaryItem item) {
-        SysDictItem sys = new SysDictItem();
-        sys.setDictItemId(item.getDictItemId());
-        sys.setDictTypeId(item.getDictTypeId());
-        sys.setItemCode(item.getCode());
-        sys.setItemLabel(item.getLabel());
-        sys.setSort(item.getSort());
-        sys.setStatus(item.getStatus());
-        return sys;
-    }
-
     private void assertNotEnumDictCode(String dictCode) {
-        if (enumDictionaryRegistry.isEnumDictCode(dictCode)) {
+        if (enumDictionaryPort.isEnumDictCode(dictCode)) {
             throw new AdminUserException(AdminUserErrorCode.DICT_READONLY, dictCode);
         }
     }
 
     private void assertNotEnumDictTypeId(Long dictTypeId) {
-        if (enumDictionaryRegistry.isEnumDictTypeId(dictTypeId)) {
+        if (enumDictionaryPort.isEnumDictTypeId(dictTypeId)) {
             throw new AdminUserException(AdminUserErrorCode.DICT_READONLY, "dictTypeId=" + dictTypeId);
         }
     }
 
     private void assertNotEnumDictItemId(Long dictItemId) {
-        if (enumDictionaryRegistry.isEnumDictItemId(dictItemId)) {
+        if (enumDictionaryPort.isEnumDictItemId(dictItemId)) {
             throw new AdminUserException(AdminUserErrorCode.DICT_READONLY, "dictItemId=" + dictItemId);
         }
     }

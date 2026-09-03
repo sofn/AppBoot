@@ -30,6 +30,7 @@ include("archforge-dependencies")
 include("archforge-server-admin")
 include("archforge-domain:archforge-blog")
 include("archforge-server-web")
+include("archforge-architecture-tests")
 
 include("archforge-domain:archforge-admin-user")
 include("archforge-domain:archforge-meta-table")

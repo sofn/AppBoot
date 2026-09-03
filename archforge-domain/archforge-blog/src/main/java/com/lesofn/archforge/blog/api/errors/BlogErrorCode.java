@@ -11,7 +11,9 @@ public enum BlogErrorCode implements ErrorCode {
     ARTICLE_NOT_FOUND(2, "文章不存在"),
     SLUG_EXISTS(3, "URL标识已存在"),
     CATEGORY_HAS_ARTICLES(4, "分类下存在文章，无法删除"),
-    STATUS_TRANSITION_INVALID(5, "文章状态转换非法");
+    STATUS_TRANSITION_INVALID(5, "文章状态转换非法"),
+    ARTICLE_TITLE_INVALID(6, "文章标题不合法"),
+    ARTICLE_SLUG_INVALID(7, "URL标识不合法（仅允许小写字母、数字与连字符）");
 
     private final int nodeNum;
     private final String msg;

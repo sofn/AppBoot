@@ -8,7 +8,9 @@ dependencies {
     "testFixturesImplementation"(platform(project(":archforge-dependencies")))
 
     api(project(":archforge-common:archforge-common-jpa"))
-    api(project(":archforge-infrastructure"))
+
+    // 领域模块内部的 BCrypt 适配器需要密码加密能力（原先经 infrastructure 传递引入，现显式声明）
+    implementation("org.springframework.security:spring-security-crypto")
 
     compileOnly("org.projectlombok:lombok")
     annotationProcessor("org.projectlombok:lombok")
